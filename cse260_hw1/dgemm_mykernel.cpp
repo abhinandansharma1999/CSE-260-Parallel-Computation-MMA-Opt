@@ -6,9 +6,6 @@
 #include <vector>
 #include <cstring>
 
-// #include <iostream>
-// using namespace std;
-
 void DGEMM_mykernel::compute(const Mat& A, const Mat& B, Mat& C) {
     int m = A.rows();
     int k = A.cols();
@@ -39,8 +36,6 @@ void DGEMM_mykernel::my_dgemm(
     // Using NOPACK option for simplicity
     // #define NOPACK
     
-    // #define NOPACK
-    
     for ( ic = 0; ic < m; ic += param_mc ) {              // 5-th loop around micro-kernel
         ib = min( m - ic, param_mc );
         for ( pc = 0; pc < k; pc += param_kc ) {          // 4-th loop around micro-kernel
@@ -49,21 +44,6 @@ void DGEMM_mykernel::my_dgemm(
             #ifdef NOPACK
             packA = &XA[pc + ic * lda ];
             #else
-
-            // Pack A: copy ib x pb block starting at (ic, pc) into register array
-            double packA_reg[ib * pb];  // Static size for register optimization
-            int buf_index = 0;
-            for (int ii = 0; ii < ib; ii += param_mr) {  // Loop over actual rows of mc x kc block
-                int iib = min(ib - ii, param_mr);
-                for (int kk = 0; kk < pb; ++kk) {  // Loop over all columns of mr x kc block
-                    for (int iii = 0; iii < iib; ++iii) {  // Loop over rows of mr x kc block
-                        packA_reg[buf_index] = XA[(ic + ii + iii) * lda + (pc + kk)];
-                        buf_index += 1;
-                    }
-                }
-            }
-            packA = &packA_reg[0];
-
 
             // Pack A: copy ib x pb block starting at (ic, pc) into register array
             double packA_reg[ib * pb];  // Static size for register optimization
@@ -102,24 +82,7 @@ void DGEMM_mykernel::my_dgemm(
                 }
                 packB = &packB_reg[0];
 
-
-                // Pack B: copy pb x jb block starting at (pc, jc) into register array
-                double packB_reg[pb * jb];  // Use max size for safety
-                int buf_index = 0;
-                for (int jj = 0; jj < jb; jj += param_nr) {  // Loop over cols of kc x nc block
-                    int jjb = min(jb - jj, param_nr);
-                    for (int kk = 0; kk < pb; ++kk) {  // Loop over rows of kc x nr block
-                        for (int jjj = 0; jjj<jjb; ++jjj) {   // Loop over rows of kc x nr block
-                            packB_reg[buf_index] = XB[(pc + kk) * ldb + (jc + jj + jjj)];
-                            buf_index += 1;
-                        }
-                    }
-                }
-                packB = &packB_reg[0];
-
                 #endif
-
-                // cout << "ic: " << ic << " pc: " << pc << " jc: " << jc << endl;
 
                 // Implement your macro-kernel here
                 my_macro_kernel(
@@ -159,7 +122,6 @@ void DGEMM_mykernel::my_dgemm_ukr( int    kc,
     for (i = 0; i < mr; ++i) {
         for (j = 0; j < nr; ++j) {
             cloc[i][j] = c(i, j, ldc);
-            // cout << "i: " << i << " j: " << j <<endl;
         }
     }
     
@@ -167,28 +129,18 @@ void DGEMM_mykernel::my_dgemm_ukr( int    kc,
     for ( l = 0; l < kc; ++l ) {                 
         for ( i = 0; i < mr; ++i ) { 
             // double as = a(i, l, ldc);
-            // cout << "l: " << l << " i: " << i << endl;
-            // cout << "l: " << l << " i: " << i <<endl;
             double as = a(l, i, mr);
-            // cout << "l: " << l << " i: " << i <<endl;
             for ( j = 0; j < nr; ++j ) { 
                 // cloc[i][j] +=  as * b(l, j, ldc);
-                // cout << "l: " << l << " i: " << i << " j: " << j <<endl;
                 cloc[i][j] +=  as * b(l, j, nr);
-                // cout << "l: " << l << " i: " << i << " j: " << j << endl;
-                // cout << as << endl;
-                // cout << b(l, j, nr) << endl;
-                // cout << cloc[i][j] << endl;
             }
         }
-        // cout << "l: " << l << " i: " << i << endl;
     }
     
     // Store local array back to C
     for (i = 0; i < mr; ++i) {
         for (j = 0; j < nr; ++j) {
             c(i, j, ldc) = cloc[i][j];
-            // cout << "i: " << i << " j: " << j <<endl;
         }
     }
 }
@@ -208,13 +160,10 @@ void DGEMM_mykernel::my_macro_kernel(
 
     for ( i = 0; i < ib; i += param_mr ) {                      // 2-th loop around micro-kernel
         for ( j = 0; j < jb; j += param_nr ) {                  // 1-th loop around micro-kernel
-            // cout << "i: " << i << " j: " << j << endl;                
             my_dgemm_ukr (
                         pb,
                         min(ib-i, param_mr),
                         min(jb-j, param_nr),
-
-                        #ifdef NOPACK
 
                         #ifdef NOPACK
                         &packA[i * ldc],          // assumes sq matrix, otherwise use lda
@@ -231,7 +180,6 @@ void DGEMM_mykernel::my_macro_kernel(
                         &C[ i * ldc + j ],
                         ldc
                         );
-        // cout << "i: " << i << " j: " << j << endl;
         }                                                       // 1-th loop around micro-kernel
     }
 }
