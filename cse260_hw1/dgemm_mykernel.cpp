@@ -2,7 +2,7 @@
 #include "parameters.h"
 
 #include <stdexcept>
-
+#include <arm_sve.h>
 #include <vector>
 #include <cstring>
 
@@ -125,14 +125,29 @@ void DGEMM_mykernel::my_dgemm_ukr( int    kc,
         }
     }
     
+    int vector_size = 4;
+
     // Perform matrix multiplication
     for ( l = 0; l < kc; ++l ) {                 
         for ( i = 0; i < mr; ++i ) { 
             // double as = a(i, l, ldc);
             double as = a(l, i, mr);
-            for ( j = 0; j < nr; ++j ) { 
+            svfloat64_t a_vec = svdup_f64(as);
+
+            for ( j = 0; j <= nr - vector_size; j += vector_size ) { 
                 // cloc[i][j] +=  as * b(l, j, ldc);
-                cloc[i][j] +=  as * b(l, j, nr);
+                svfloat64_t c_vec = svld1_f64(svptrue_b64(), &cloc[i][j]);
+                svfloat64_t b_vec = svld1_f64(svptrue_b64(), &b[(l) *(nr) + (j)]);
+                c_vec = svmla_f64_m(svptrue_b64(), c_vec, a_vec, b_vec);
+                svst1_f64(svptrue_b64(), &cloc[i][j], c_vec);
+            }
+
+            if (j < nr) {
+                svbool_t pred = svwhilelt_b64(j, nr);
+                svfloat64_t c_vec = svld1_f64(pred, &cloc[i][j]);
+                svfloat64_t b_vec = svld1_f64(pred, &b[(l) *(nr) + (j)]);
+                c_vec = svmla_f64_m(pred, c_vec, a_vec, b_vec);
+                svst1_f64(pred, &cloc[i][j], c_vec); 
             }
         }
     }
