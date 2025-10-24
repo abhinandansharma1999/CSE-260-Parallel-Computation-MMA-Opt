@@ -1,6 +1,6 @@
 #include "dgemm_mykernel.h"
 #include "parameters.h"
-
+#include <arm_sve.h>
 #include <stdexcept>
 
 void DGEMM_mykernel::compute(const Mat& A, const Mat& B, Mat& C) {
@@ -29,29 +29,28 @@ void DGEMM_mykernel::my_dgemm(
 {
     int    ic, ib, jc, jb, pc, pb;
     const double *packA, *packB;
+    double* packedA = new double[param_mc * param_kc];
+    double* packedB = new double[param_kc * param_nc];
 
     // Using NOPACK option for simplicity
-    #define NOPACK
+    // #define NOPACK
 
     for ( ic = 0; ic < m; ic += param_mc ) {              // 5-th loop around micro-kernel
         ib = min( m - ic, param_mc );
         for ( pc = 0; pc < k; pc += param_kc ) {          // 4-th loop around micro-kernel
             pb = min( k - pc, param_kc );
             
-            #ifdef NOPACK
             packA = &XA[pc + ic * lda ];
-            #else
-            // Implement pack_A if you want to use PACK option
-            #endif
+            double *current_packedA = packedA;
+            pack_A(ib, pb, &XA[pc + ic * lda], lda, current_packedA);
+            packA = current_packedA;
 
             for ( jc = 0; jc < n; jc += param_nc ) {        // 3-rd loop around micro-kernel
                 jb = min( n - jc, param_nc );
 
-                #ifdef NOPACK
-                packB = &XB[ldb * pc + jc ];
-                #else
-                // Implement pack_B if you want to use PACK option
-                #endif
+                double *current_packedB = packedB;
+                pack_B(pb, jb, &XB[ldb * pc + jc], ldb, current_packedB);
+                packB = current_packedB;
 
                 // Implement your macro-kernel here
                 my_macro_kernel(
@@ -94,12 +93,29 @@ void DGEMM_mykernel::my_dgemm_ukr( int    kc,
         }
     }
     
+    int vector_size = 4;
+
     // Perform matrix multiplication
     for ( l = 0; l < kc; ++l ) {                 
         for ( i = 0; i < mr; ++i ) { 
-            double as = a(i, l, ldc);
-            for ( j = 0; j < nr; ++j ) { 
-                cloc[i][j] +=  as * b(l, j, ldc);
+            // double as = a(i, l, ldc);
+            double as = a(l, i, mr);
+            svfloat64_t a_vec = svdup_f64(as);
+
+            for ( j = 0; j <= nr - vector_size; j += vector_size ) { 
+                // cloc[i][j] +=  as * b(l, j, ldc);
+                svfloat64_t c_vec = svld1_f64(svptrue_b64(), &cloc[i][j]);
+                svfloat64_t b_vec = svld1_f64(svptrue_b64(), &b[(l) *(nr) + (j)]);
+                c_vec = svmla_f64_m(svptrue_b64(), c_vec, a_vec, b_vec);
+                svst1_f64(svptrue_b64(), &cloc[i][j], c_vec);
+            }
+
+            if (j < nr) {
+                svbool_t pred = svwhilelt_b64(j, nr);
+                svfloat64_t c_vec = svld1_f64(pred, &cloc[i][j]);
+                svfloat64_t b_vec = svld1_f64(pred, &b[(l) *(nr) + (j)]);
+                c_vec = svmla_f64_m(pred, c_vec, a_vec, b_vec);
+                svst1_f64(pred, &cloc[i][j], c_vec); 
             }
         }
     }
@@ -131,11 +147,39 @@ void DGEMM_mykernel::my_macro_kernel(
                         pb,
                         min(ib-i, param_mr),
                         min(jb-j, param_nr),
-                        &packA[i * ldc],          // assumes sq matrix, otherwise use lda
-                        &packB[j],                
+                        &packA[i * pb],          // assumes sq matrix, otherwise use lda
+                        &packB[j * pb],                
                         &C[ i * ldc + j ],
                         ldc
                         );
         }                                                       // 1-th loop around micro-kernel
+    }
+}
+
+void DGEMM_mykernel::pack_A(int m, int k, const double * A, int lda, double * packed_A){
+    int buffer_counter = 0;
+    for(int i = 0; i < m; i += param_mr){
+        int ib = min(m - i, param_mr);
+        for(int p = 0; p < k; p++){
+            for(int ii = 0; ii < ib; ii++){
+                packed_A[buffer_counter] = A[(i + ii) * lda + p];
+                buffer_counter++;
+            }
+        }
+    }
+
+}
+
+void DGEMM_mykernel::pack_B(int k, int n, const double * B, int ldb, double * packed_B){
+    int buffer_counter = 0;
+    for(int j = 0; j < n; j += param_nr){
+        int ib = min(n - j, param_nr);
+        for(int p = 0; p < k; p++){
+            for(int jj = 0; jj < ib; jj++){
+                packed_B[buffer_counter] = B[p * ldb + j + jj];
+                buffer_counter++;
+            }
+        }
+
     }
 }
