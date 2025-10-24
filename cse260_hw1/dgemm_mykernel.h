@@ -7,6 +7,7 @@ class DGEMM_mykernel : public DGEMM {
 public:
     void compute(const Mat& A, const Mat& B, Mat& C) override;
     string name() override;
+
 private:
     void my_dgemm(int m, int n, int k, const double *A, int lda, const double *B, int ldb, double *C, int ldc);
     void my_macro_kernel(int ib, int jb, int pb, const double *packA, const double *packB, double *C, int ldc);
@@ -14,6 +15,9 @@ private:
 
     void pack_A(int m, int k, const double * A, int lda, double * packed_A);
     void pack_B(int k, int n, const double * B, int ldb, double * packed_B);
+    
+    double* packedA = nullptr;
+    double* packedB = nullptr;
 };
 
 #endif // DGEMM_MYKERNEL_H
