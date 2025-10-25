@@ -18,6 +18,7 @@ private:
     void my_macro_kernel_wo_packing(int ib, int jb, int pb, const double *packA, const double *packB, double *C, int ldc);
     void my_dgemm_ukr_w_packing_w_simd(int kc, int mr, int nr, const double *a, const double *b, double *c, int ldc);
     void my_dgemm_ukr_wo_packing(int kc, int mr, int nr, const double *a, const double *b, double *c, int ldc);
+    void my_dgemm_ukr_wo_packing_w_simd(int kc, int mr, int nr, const double *a, const double *b, double *c, int ldc);
     void my_dgemm_8x8x8(int kc, int mr, int nr, const double *a, const double *b, double *c, int ldc);
 
     void pack_A(int m, int k, const double * A, int lda, double * packed_A);
