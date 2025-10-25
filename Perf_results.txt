@@ -1,0 +1,215 @@
+######################## After packing + SIMD + Loop Unrolling #########################
+
+Kernel: my_kernel
+Sizes: 17
+
+==> ./mm --kernel=my_kernel --size=32 --reps=10
+   my_kernel         32 30.2204
+==> ./mm --kernel=my_kernel --size=64 --reps=10
+   my_kernel         64 22.2371
+==> ./mm --kernel=my_kernel --size=128 --reps=10
+   my_kernel        128 21.4687
+==> ./mm --kernel=my_kernel --size=255 --reps=10
+   my_kernel        255 21.8820
+==> ./mm --kernel=my_kernel --size=256 --reps=10
+   my_kernel        256 21.7249
+==> ./mm --kernel=my_kernel --size=510 --reps=10
+   my_kernel        510 22.1795
+==> ./mm --kernel=my_kernel --size=512 --reps=10
+   my_kernel        512 22.3081
+==> ./mm --kernel=my_kernel --size=513 --reps=10
+   my_kernel        513 22.0499
+==> ./mm --kernel=my_kernel --size=768 --reps=10
+   my_kernel        768 21.8501
+==> ./mm --kernel=my_kernel --size=769 --reps=10
+   my_kernel        769 21.0992
+==> ./mm --kernel=my_kernel --size=1023 --reps=10
+   my_kernel       1023 22.4081
+==> ./mm --kernel=my_kernel --size=1024 --reps=10
+   my_kernel       1024 21.0400
+==> ./mm --kernel=my_kernel --size=1025 --reps=10
+   my_kernel       1025 21.0805
+==> ./mm --kernel=my_kernel --size=1033 --reps=10
+   my_kernel       1033 19.9742
+==> ./mm --kernel=my_kernel --size=2047 --reps=10
+   my_kernel       2047 21.9146
+==> ./mm --kernel=my_kernel --size=2048 --reps=10
+   my_kernel       2048 21.5837
+==> ./mm --kernel=my_kernel --size=2049 --reps=10
+   my_kernel       2049 21.2945
+
+Successful runs: 11; Failed: 0
+Average over 11 runs: 21.5094
+
+Kernel: naive_ijk
+Sizes: 17
+
+==> ./mm --kernel=naive_ijk --size=32 --reps=10
+   naive_ijk         32 0.8745
+==> ./mm --kernel=naive_ijk --size=64 --reps=10
+   naive_ijk         64 1.2604
+==> ./mm --kernel=naive_ijk --size=128 --reps=10
+   naive_ijk        128 1.0540
+==> ./mm --kernel=naive_ijk --size=255 --reps=10
+   naive_ijk        255 1.1668
+==> ./mm --kernel=naive_ijk --size=256 --reps=10
+   naive_ijk        256 0.9923
+==> ./mm --kernel=naive_ijk --size=510 --reps=10
+   naive_ijk        510 1.1600
+==> ./mm --kernel=naive_ijk --size=512 --reps=10
+   naive_ijk        512 0.8017
+==> ./mm --kernel=naive_ijk --size=513 --reps=10
+   naive_ijk        513 1.0282
+==> ./mm --kernel=naive_ijk --size=768 --reps=10
+   naive_ijk        768 0.8188
+==> ./mm --kernel=naive_ijk --size=769 --reps=10
+   naive_ijk        769 1.0404
+==> ./mm --kernel=naive_ijk --size=1023 --reps=10
+   naive_ijk       1023 0.9659
+==> ./mm --kernel=naive_ijk --size=1024 --reps=10
+   naive_ijk       1024 0.7146
+==> ./mm --kernel=naive_ijk --size=1025 --reps=10
+   naive_ijk       1025 0.9402
+==> ./mm --kernel=naive_ijk --size=1033 --reps=10
+   naive_ijk       1033 0.9603
+==> ./mm --kernel=naive_ijk --size=2047 --reps=10
+   naive_ijk       2047 0.4789
+==> ./mm --kernel=naive_ijk --size=2048 --reps=10
+   naive_ijk       2048 0.3840
+==> ./mm --kernel=naive_ijk --size=2049 --reps=10
+   naive_ijk       2049 0.4746
+
+Successful runs: 11; Failed: 0
+Average over 11 runs: 0.7825
+
+----------------------------------------------------------
+
+Kernel: openblas
+Sizes: 17
+
+==> ./mm --kernel=openblas --size=32 --reps=10
+   openblas          32 20.7511
+==> ./mm --kernel=openblas --size=64 --reps=10
+   openblas          64 19.6760
+==> ./mm --kernel=openblas --size=128 --reps=10
+   openblas         128 19.3477
+==> ./mm --kernel=openblas --size=255 --reps=10
+   openblas         255 19.2039
+==> ./mm --kernel=openblas --size=256 --reps=10
+   openblas         256 19.3255
+==> ./mm --kernel=openblas --size=510 --reps=10
+   openblas         510 19.6568
+==> ./mm --kernel=openblas --size=512 --reps=10
+   openblas         512 19.5929
+==> ./mm --kernel=openblas --size=513 --reps=10
+   openblas         513 19.4516
+==> ./mm --kernel=openblas --size=768 --reps=10
+   openblas         768 19.2575
+==> ./mm --kernel=openblas --size=769 --reps=10
+   openblas         769 19.3639
+==> ./mm --kernel=openblas --size=1023 --reps=10
+   openblas        1023 18.5784
+==> ./mm --kernel=openblas --size=1024 --reps=10
+   openblas        1024 18.6846
+==> ./mm --kernel=openblas --size=1025 --reps=10
+   openblas        1025 19.2170
+==> ./mm --kernel=openblas --size=1033 --reps=10
+   openblas        1033 18.5235
+==> ./mm --kernel=openblas --size=2047 --reps=10
+   openblas        2047 18.9947
+==> ./mm --kernel=openblas --size=2048 --reps=10
+   openblas        2048 19.0210
+==> ./mm --kernel=openblas --size=2049 --reps=10
+   openblas        2049 19.0624
+
+Successful runs: 11; Failed: 0
+Average over 11 runs: 19.0680
+
+-----------------------------------------------------------
+Kernel: blislab
+Sizes: 17
+
+==> ./mm --kernel=blislab --size=32 --reps=10
+   blislab           32 6.3775
+==> ./mm --kernel=blislab --size=64 --reps=10
+   blislab           64 6.5028
+==> ./mm --kernel=blislab --size=128 --reps=10
+   blislab          128 7.0849
+==> ./mm --kernel=blislab --size=255 --reps=10
+   blislab          255 6.7298
+==> ./mm --kernel=blislab --size=256 --reps=10
+   blislab          256 6.9709
+==> ./mm --kernel=blislab --size=510 --reps=10
+   blislab          510 6.6036
+==> ./mm --kernel=blislab --size=512 --reps=10
+   blislab          512 6.8622
+==> ./mm --kernel=blislab --size=513 --reps=10
+   blislab          513 6.5138
+==> ./mm --kernel=blislab --size=768 --reps=10
+   blislab          768 6.7089
+==> ./mm --kernel=blislab --size=769 --reps=10
+   blislab          769 6.4808
+==> ./mm --kernel=blislab --size=1023 --reps=10
+   blislab         1023 6.3532
+==> ./mm --kernel=blislab --size=1024 --reps=10
+   blislab         1024 6.7581
+==> ./mm --kernel=blislab --size=1025 --reps=10
+   blislab         1025 6.2509
+==> ./mm --kernel=blislab --size=1033 --reps=10
+   blislab         1033 6.4954
+==> ./mm --kernel=blislab --size=2047 --reps=10
+   blislab         2047 5.9703
+==> ./mm --kernel=blislab --size=2048 --reps=10
+   blislab         2048 5.6202
+==> ./mm --kernel=blislab --size=2049 --reps=10
+   blislab         2049 5.8502
+
+Successful runs: 11; Failed: 0
+Average over 11 runs: 6.3513
+
+----------------------------------------------------------------
+
+######################## Apply Packing on A and B #########################
+Kernel: my_kernel
+Sizes: 17
+
+==> ./mm --kernel=my_kernel --size=32 --reps=10
+   my_kernel         32 7.4067
+==> ./mm --kernel=my_kernel --size=64 --reps=10
+   my_kernel         64 7.1171
+==> ./mm --kernel=my_kernel --size=128 --reps=10
+   my_kernel        128 7.2611
+==> ./mm --kernel=my_kernel --size=255 --reps=10
+   my_kernel        255 6.7927
+==> ./mm --kernel=my_kernel --size=256 --reps=10
+   my_kernel        256 7.1356
+==> ./mm --kernel=my_kernel --size=510 --reps=10
+   my_kernel        510 5.9933
+==> ./mm --kernel=my_kernel --size=512 --reps=10
+   my_kernel        512 7.0320
+==> ./mm --kernel=my_kernel --size=513 --reps=10
+   my_kernel        513 6.6816
+==> ./mm --kernel=my_kernel --size=768 --reps=10
+   my_kernel        768 6.7842
+==> ./mm --kernel=my_kernel --size=769 --reps=10
+   my_kernel        769 6.6074
+==> ./mm --kernel=my_kernel --size=1023 --reps=10
+   my_kernel       1023 6.4891
+==> ./mm --kernel=my_kernel --size=1024 --reps=10
+   my_kernel       1024 6.9027
+==> ./mm --kernel=my_kernel --size=1025 --reps=10
+   my_kernel       1025 6.3669
+==> ./mm --kernel=my_kernel --size=1033 --reps=10
+   my_kernel       1033 6.6311
+==> ./mm --kernel=my_kernel --size=2047 --reps=10
+   my_kernel       2047 6.0856
+==> ./mm --kernel=my_kernel --size=2048 --reps=10
+   my_kernel       2048 5.6618
+==> ./mm --kernel=my_kernel --size=2049 --reps=10
+   my_kernel       2049 5.8915
+
+Successful runs: 11; Failed: 0
+Average over 11 runs: 6.4667
+
+
+
