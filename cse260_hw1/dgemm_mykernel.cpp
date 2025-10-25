@@ -79,20 +79,30 @@ void DGEMM_mykernel::my_dgemm_ukr(int kc, int mr, int nr,
                                   double *c, int ldc) {
     
     // We assume mr = 8 and nr = 4, almost all of the time, and handle it efficiently.
-    if (mr == 8 && nr == 4) {
+    if (mr == 8 && nr == 8) {
         // Small enough to fit in registers
-        svfloat64_t c0, c1, c2, c3, c4, c5, c6, c7;
+        svfloat64_t c00, c10, c20, c30, c40, c50, c60, c70;
+        svfloat64_t c01, c11, c21, c31, c41, c51, c61, c71;
         
         // Load all Cs into registers
         svbool_t all_pred = svptrue_b64();
-        c0 = svld1(all_pred, &c(0, 0, ldc));
-        c1 = svld1(all_pred, &c(1, 0, ldc));
-        c2 = svld1(all_pred, &c(2, 0, ldc));
-        c3 = svld1(all_pred, &c(3, 0, ldc));
-        c4 = svld1(all_pred, &c(4, 0, ldc));
-        c5 = svld1(all_pred, &c(5, 0, ldc));
-        c6 = svld1(all_pred, &c(6, 0, ldc));
-        c7 = svld1(all_pred, &c(7, 0, ldc));
+        c00 = svld1(all_pred, &c(0, 0, ldc));
+        c10 = svld1(all_pred, &c(1, 0, ldc));
+        c20 = svld1(all_pred, &c(2, 0, ldc));
+        c30 = svld1(all_pred, &c(3, 0, ldc));
+        c40 = svld1(all_pred, &c(4, 0, ldc));
+        c50 = svld1(all_pred, &c(5, 0, ldc));
+        c60 = svld1(all_pred, &c(6, 0, ldc));
+        c70 = svld1(all_pred, &c(7, 0, ldc));
+
+        c01 = svld1(all_pred, &c(0, 4, ldc));
+        c11 = svld1(all_pred, &c(1, 4, ldc));
+        c21 = svld1(all_pred, &c(2, 4, ldc));
+        c31 = svld1(all_pred, &c(3, 4, ldc));
+        c41 = svld1(all_pred, &c(4, 4, ldc));
+        c51 = svld1(all_pred, &c(5, 4, ldc));
+        c61 = svld1(all_pred, &c(6, 4, ldc));
+        c71 = svld1(all_pred, &c(7, 4, ldc));
         
         for (int l = 0; l < kc; ++l) {
             // get 8 values of a.
@@ -106,28 +116,47 @@ void DGEMM_mykernel::my_dgemm_ukr(int kc, int mr, int nr,
             double a7 = a(l, 7, 8);
             
             // Get 4 row values of b
-            svfloat64_t b_vec = svld1(all_pred, &b(l, 0, 4));
+            svfloat64_t b0 = svld1(all_pred, &b(l, 0, 8));
+            svfloat64_t b1 = svld1(all_pred, &b(l, 4, 8));
             
             // Fused multiply add on every row to get values of c
-            c0 = svmla_f64_m(all_pred, c0, svdup_f64(a0), b_vec);
-            c1 = svmla_f64_m(all_pred, c1, svdup_f64(a1), b_vec);
-            c2 = svmla_f64_m(all_pred, c2, svdup_f64(a2), b_vec);
-            c3 = svmla_f64_m(all_pred, c3, svdup_f64(a3), b_vec);
-            c4 = svmla_f64_m(all_pred, c4, svdup_f64(a4), b_vec);
-            c5 = svmla_f64_m(all_pred, c5, svdup_f64(a5), b_vec);
-            c6 = svmla_f64_m(all_pred, c6, svdup_f64(a6), b_vec);
-            c7 = svmla_f64_m(all_pred, c7, svdup_f64(a7), b_vec);
+            c00 = svmla_f64_m(all_pred, c00, svdup_f64(a0), b0);
+            c10 = svmla_f64_m(all_pred, c10, svdup_f64(a1), b0);
+            c20 = svmla_f64_m(all_pred, c20, svdup_f64(a2), b0);
+            c30 = svmla_f64_m(all_pred, c30, svdup_f64(a3), b0);
+            c40 = svmla_f64_m(all_pred, c40, svdup_f64(a4), b0);
+            c50 = svmla_f64_m(all_pred, c50, svdup_f64(a5), b0);
+            c60 = svmla_f64_m(all_pred, c60, svdup_f64(a6), b0);
+            c70 = svmla_f64_m(all_pred, c70, svdup_f64(a7), b0);
+
+            c01 = svmla_f64_m(all_pred, c01, svdup_f64(a0), b1);
+            c11 = svmla_f64_m(all_pred, c11, svdup_f64(a1), b1);
+            c21 = svmla_f64_m(all_pred, c21, svdup_f64(a2), b1);
+            c31 = svmla_f64_m(all_pred, c31, svdup_f64(a3), b1);
+            c41 = svmla_f64_m(all_pred, c41, svdup_f64(a4), b1);
+            c51 = svmla_f64_m(all_pred, c51, svdup_f64(a5), b1);
+            c61 = svmla_f64_m(all_pred, c61, svdup_f64(a6), b1);
+            c71 = svmla_f64_m(all_pred, c71, svdup_f64(a7), b1);
         }
         
         // Write values back to C.
-        svst1(all_pred, &c(0, 0, ldc), c0);
-        svst1(all_pred, &c(1, 0, ldc), c1);
-        svst1(all_pred, &c(2, 0, ldc), c2);
-        svst1(all_pred, &c(3, 0, ldc), c3);
-        svst1(all_pred, &c(4, 0, ldc), c4);
-        svst1(all_pred, &c(5, 0, ldc), c5);
-        svst1(all_pred, &c(6, 0, ldc), c6);
-        svst1(all_pred, &c(7, 0, ldc), c7);
+        svst1(all_pred, &c(0, 0, ldc), c00);
+        svst1(all_pred, &c(1, 0, ldc), c10);
+        svst1(all_pred, &c(2, 0, ldc), c20);
+        svst1(all_pred, &c(3, 0, ldc), c30);
+        svst1(all_pred, &c(4, 0, ldc), c40);
+        svst1(all_pred, &c(5, 0, ldc), c50);
+        svst1(all_pred, &c(6, 0, ldc), c60);
+        svst1(all_pred, &c(7, 0, ldc), c70);
+
+        svst1(all_pred, &c(0, 4, ldc), c01);
+        svst1(all_pred, &c(1, 4, ldc), c11);
+        svst1(all_pred, &c(2, 4, ldc), c21);
+        svst1(all_pred, &c(3, 4, ldc), c31);
+        svst1(all_pred, &c(4, 4, ldc), c41);
+        svst1(all_pred, &c(5, 4, ldc), c51);
+        svst1(all_pred, &c(6, 4, ldc), c61);
+        svst1(all_pred, &c(7, 4, ldc), c71);
     }
     else {
         // Marginal case handling...
