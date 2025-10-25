@@ -7,11 +7,11 @@
 #endif
 
 #ifndef PARAM_NC
-#define PARAM_NC 256
+#define PARAM_NC 2048
 #endif
 
 #ifndef PARAM_KC
-#define PARAM_KC 128
+#define PARAM_KC 256
 #endif
 
 #ifndef PARAM_MR
@@ -19,7 +19,7 @@
 #endif
 
 #ifndef PARAM_NR
-#define PARAM_NR 8
+#define PARAM_NR 4
 #endif
 
 inline constexpr int param_mc = PARAM_MC;

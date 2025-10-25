@@ -16,6 +16,14 @@ private:
     void pack_A(int m, int k, const double * A, int lda, double * packed_A);
     void pack_B(int k, int n, const double * B, int ldb, double * packed_B);
     
+    void my_dgemm_ukr_scalar_4x4(int kc, const double *a, const double *b, double *c, int ldc);
+    void handle_arbitrary_size( int    kc,
+                                  int    mr,
+                                  int    nr,
+                                  const double *a,
+                                  const double *b,
+                                  double *c,
+                                  int ldc);
     double* packedA = nullptr;
     double* packedB = nullptr;
 };
